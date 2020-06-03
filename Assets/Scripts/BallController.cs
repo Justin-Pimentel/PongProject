@@ -5,6 +5,7 @@ using UnityEngine;
 public class BallController : MonoBehaviour
 {
     public float initialSpeed;
+    public float maxSpeed;
     private GameObject lP;
     private GameObject rP;
     private Vector2 newVelocity;
@@ -27,10 +28,10 @@ public class BallController : MonoBehaviour
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
         //Move the ball
-        transform.Translate(newVelocity * initialSpeed);
+        transform.Translate(newVelocity * initialSpeed * Time.deltaTime);
     }
 
     void OnCollisionEnter2D(Collision2D coll)
@@ -43,7 +44,7 @@ public class BallController : MonoBehaviour
 
         //Vectors to calculate reflection angle off of paddles and walls
         Vector2 inNormal = coll.contacts[0].normal;
-        newVelocity = Vector2.Reflect(newVelocity, inNormal);
+        newVelocity = Vector2.ClampMagnitude(Vector2.Reflect(newVelocity, inNormal), maxSpeed);
         Debug.Log("newVelocity: " + newVelocity);
 
         /*
@@ -55,9 +56,13 @@ public class BallController : MonoBehaviour
         {
             d = findDiff(pName, p);
             Debug.Log(d);
+
+            //Use newVelocity to modify reflect angle
+            newVelocity = Vector2.ClampMagnitude(newVelocity + new Vector2(0, newVelocity.y + d), maxSpeed);
         }
 
-        //Use newVelocity to modify reflect angle
+        //xVal = newVelocity.x;
+        //yVal = newVelocity.y;
     }
 
     float findDiff(string n, ContactPoint2D p)
