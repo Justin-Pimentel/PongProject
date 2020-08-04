@@ -36,6 +36,7 @@ public class BallController : MonoBehaviour
 
         RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, newVelocity, rayDist);
 
+        //Only process the first hit detected by the raycast
         if (hits.Length > 0)
         {
             processCollision(hits[0]);
@@ -46,6 +47,7 @@ public class BallController : MonoBehaviour
     {
         Debug.Log(firstHit.normal);
         string pName = firstHit.collider.gameObject.name;
+        string tag = firstHit.collider.gameObject.tag;
         Vector2 pt = firstHit.point;
         float d = 0.0f;
 
@@ -60,7 +62,6 @@ public class BallController : MonoBehaviour
         if (tag == "Paddle")
         {
             d = findDiff(pName, pt);
-            //Debug.Log(d);
 
             //Use newVelocity to modify reflect angle
             newVelocity = Vector2.ClampMagnitude(newVelocity + new Vector2(0, newVelocity.y + d), maxVectorSpeed);
