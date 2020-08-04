@@ -5,7 +5,8 @@ using UnityEngine;
 public class BallController : MonoBehaviour
 {
     public float initialSpeed;
-    public float maxSpeed;
+    public float maxVectorSpeed;
+    public float rayDist;
     private GameObject lP;
     private GameObject rP;
     private Vector2 newVelocity;
@@ -32,20 +33,24 @@ public class BallController : MonoBehaviour
     {
         //Move the ball
         transform.Translate(newVelocity * initialSpeed * Time.deltaTime);
+
+        RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, newVelocity, rayDist);
+
+        if (hits.Length > 0)
+        {
+            processCollision(hits[0]);
+        }
     }
 
-    void OnCollisionEnter2D(Collision2D coll)
+    void processCollision(RaycastHit2D firstHit)
     {
-        //Get collision info
-        string pName = coll.gameObject.name;
-        string tag = coll.gameObject.tag;
-        ContactPoint2D p = coll.contacts[0];
+        Debug.Log(firstHit.normal);
+        string pName = firstHit.collider.gameObject.name;
+        Vector2 pt = firstHit.point;
         float d = 0.0f;
 
         //Vectors to calculate reflection angle off of paddles and walls
-        Vector2 inNormal = coll.contacts[0].normal;
-        newVelocity = Vector2.ClampMagnitude(Vector2.Reflect(newVelocity, inNormal), maxSpeed);
-        Debug.Log("newVelocity: " + newVelocity);
+        newVelocity = Vector2.ClampMagnitude(Vector2.Reflect(newVelocity, firstHit.normal), maxVectorSpeed);
 
         /*
          * If a paddle was hit, find the difference from contact point to paddle center
@@ -54,31 +59,28 @@ public class BallController : MonoBehaviour
          */
         if (tag == "Paddle")
         {
-            d = findDiff(pName, p);
-            Debug.Log(d);
+            d = findDiff(pName, pt);
+            //Debug.Log(d);
 
             //Use newVelocity to modify reflect angle
-            newVelocity = Vector2.ClampMagnitude(newVelocity + new Vector2(0, newVelocity.y + d), maxSpeed);
+            newVelocity = Vector2.ClampMagnitude(newVelocity + new Vector2(0, newVelocity.y + d), maxVectorSpeed);
         }
-
-        //xVal = newVelocity.x;
-        //yVal = newVelocity.y;
     }
 
-    float findDiff(string n, ContactPoint2D p)
+    float findDiff(string n, Vector2 p)
     {
         float diff = 0.0f;
 
         //For left paddle
         if (n == "LeftPaddle")
         {
-            diff = p.point.y - lP.transform.position.y;
+            diff = p.y - lP.transform.position.y;
         }
 
         //For right paddle
         if (n == "RightPaddle")
         {
-            diff = p.point.y - rP.transform.position.y;
+            diff = p.y - rP.transform.position.y;
         }
 
         return diff;
