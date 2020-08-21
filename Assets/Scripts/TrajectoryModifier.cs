@@ -23,7 +23,7 @@ public class TrajectoryModifier : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        //DrawCurve();
     }
     
     //Helper function to visualize the curve

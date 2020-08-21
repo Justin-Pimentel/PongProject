@@ -45,26 +45,43 @@ public class BallController : MonoBehaviour
 
     void processCollision(RaycastHit2D firstHit)
     {
-        Debug.Log(firstHit.normal);
         string pName = firstHit.collider.gameObject.name;
         string tag = firstHit.collider.gameObject.tag;
         Vector2 pt = firstHit.point;
         float d = 0.0f;
-
-        //Vectors to calculate reflection angle off of paddles and walls
-        newVelocity = Vector2.ClampMagnitude(Vector2.Reflect(newVelocity, firstHit.normal), maxVectorSpeed);
 
         /*
          * If a paddle was hit, find the difference from contact point to paddle center
          * We will use this to offset the angle of reflection so the farther from center
          * the more extreme the angle of reflection
          */
-        if (tag == "Paddle")
+
+        if(tag == "GWell")
         {
+
+            Debug.Log("Hit dat well");
+
+        } else if (tag == "Paddle")
+        {
+            //Vectors to calculate reflection angle off of paddles and walls
+            newVelocity = Vector2.ClampMagnitude(Vector2.Reflect(newVelocity, firstHit.normal), maxVectorSpeed);
+
             d = findDiff(pName, pt);
 
+            Debug.Log(d);
+
+            //TODO: Find a way to modify the y value of the newVelocity vector to keep it from too extreme an angle
+
+            Vector2 modVec = Vector2.ClampMagnitude(newVelocity + new Vector2(0, newVelocity.y + d), maxVectorSpeed);
+            Vector2 refVec = new Vector2(newVelocity.x, 0);
+
+            float angle = Vector2.Angle(refVec, modVec);
+            Debug.Log(angle);
+
+            newVelocity = modVec;
+
             //Use newVelocity to modify reflect angle
-            newVelocity = Vector2.ClampMagnitude(newVelocity + new Vector2(0, newVelocity.y + d), maxVectorSpeed);
+            //newVelocity = Vector2.ClampMagnitude(newVelocity + new Vector2(0, newVelocity.y + d), maxVectorSpeed);
         }
     }
 
@@ -84,6 +101,6 @@ public class BallController : MonoBehaviour
             diff = p.y - rP.transform.position.y;
         }
 
-        return diff;
+        return diff%0.25f;
     }
 }
