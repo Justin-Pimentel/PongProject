@@ -60,6 +60,10 @@ public class BallController : MonoBehaviour
         {
 
             Debug.Log("Hit dat well");
+            float radius = firstHit.collider.GetComponent<CircleCollider2D>().radius;
+            float a = Mathf.Acos(pt.x / radius);
+            float deg = a * Mathf.Rad2Deg;
+            Debug.Log("deg: " + deg);
 
         } else if (tag == "Paddle")
         {

@@ -32,7 +32,7 @@ public class TrajectoryModifier : MonoBehaviour
         for(int i = 0; i < RESOLUTION; i++)
         {
             float timestep = i/(float)RESOLUTION;
-            Vector3 linePoint = CalculateBezierPoint(timestep, points[1], points[2], points[3]);
+            Vector3 linePoint = CalculateBezierPoint(timestep, points[0], points[1], points[2]);
         }
     }
     

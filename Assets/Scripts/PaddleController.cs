@@ -24,10 +24,8 @@ public class PaddleController : MonoBehaviour
 
         //Get Rigidbody references for both paddles
         lPaddleBody = lPaddle.GetComponent<Rigidbody2D>();
-        //lPaddleBody.isKinematic = true;
 
         rPaddleBody = rPaddle.GetComponent<Rigidbody2D>();
-        //rPaddleBody.isKinematic = true;
     }
 
     // Update is called once per frame
