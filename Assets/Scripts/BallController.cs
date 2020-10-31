@@ -22,7 +22,7 @@ public class BallController : MonoBehaviour
         if (rNum <= 0.0f)
         {
             newVelocity = new Vector2(-1f, 0f);
-        }else if(rNum > 0.0f)
+        } else if (rNum > 0.0f)
         {
             newVelocity = new Vector2(1f, 0f);
         }
@@ -34,12 +34,12 @@ public class BallController : MonoBehaviour
         //Move the ball
         transform.Translate(newVelocity * initialSpeed * Time.deltaTime);
 
-        RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, newVelocity, rayDist);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, newVelocity, rayDist);
 
         //Only process the first hit detected by the raycast
-        if (hits.Length > 0)
+        if (hit.collider != null && atRadius(hit))
         {
-            processCollision(hits[0]);
+            processCollision(hit);
         }
     }
 
@@ -56,13 +56,13 @@ public class BallController : MonoBehaviour
          * the more extreme the angle of reflection
          */
 
-        if(tag == "GWell")
+        if (tag == "GWell")
         {
 
             Debug.Log("Hit dat well");
             float radius = firstHit.collider.GetComponent<CircleCollider2D>().radius;
-            float a = Mathf.Acos(pt.x / radius);
-            float deg = a * Mathf.Rad2Deg;
+            Vector2 collCenter = firstHit.collider.gameObject.transform.position;
+            float deg = Mathf.Atan2(pt.y - collCenter.y, pt.x - collCenter.x) * Mathf.Rad2Deg;
             Debug.Log("deg: " + deg);
 
         } else if (tag == "Paddle")
@@ -105,6 +105,23 @@ public class BallController : MonoBehaviour
             diff = p.y - rP.transform.position.y;
         }
 
-        return diff%0.25f;
+        return diff % 0.25f;
+    }
+
+    bool atRadius(RaycastHit2D hit)
+    {
+        float ptErr = 0.05f;
+        float rad = hit.collider.GetComponent<CircleCollider2D>().radius;
+        Vector2 center = hit.collider.gameObject.transform.position;
+        Vector2 hitPoint = hit.point;
+
+        float dist = Vector2.Distance(center, hitPoint);
+
+        if(dist >= (rad - ptErr))
+        {
+            return true;
+        }
+
+        return false;
     }
 }
