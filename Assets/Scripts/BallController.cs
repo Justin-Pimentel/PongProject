@@ -9,13 +9,18 @@ public class BallController : MonoBehaviour
     public float rayDist;
     private GameObject lP;
     private GameObject rP;
+    private GameObject parentWell;
+    private Dictionary<string, string> wellRotations;
     private Vector2 newVelocity;
+    private bool inWell = false;
 
     // Start is called before the first frame update
     void Start()
     {
         lP = GameObject.Find("LeftPaddle");
         rP = GameObject.Find("RightPaddle");
+        parentWell = GameObject.Find("Gravity Wells");
+        wellRotations = new Dictionary<string, string>();
 
         float rNum = Random.Range(-1f, 1f);
 
@@ -26,6 +31,13 @@ public class BallController : MonoBehaviour
         {
             newVelocity = new Vector2(1f, 0f);
         }
+
+        foreach(Transform child in parentWell.transform)
+        {
+            wellRotations.Add(child.name, child.GetComponent<TrajectoryModifier>().rotType);
+        }
+
+        //printRotations(wellRotations);
     }
 
     // Update is called once per frame
@@ -37,7 +49,7 @@ public class BallController : MonoBehaviour
         RaycastHit2D hit = Physics2D.Raycast(transform.position, newVelocity, rayDist);
 
         //Only process the first hit detected by the raycast
-        if (hit.collider != null && atRadius(hit))
+        if (hit.collider != null)
         {
             processCollision(hit);
         }
@@ -56,14 +68,24 @@ public class BallController : MonoBehaviour
          * the more extreme the angle of reflection
          */
 
-        if (tag == "GWell")
+        if (tag == "GWell" && !inWell)
         {
-
+            inWell = true;
             Debug.Log("Hit dat well");
             float radius = firstHit.collider.GetComponent<CircleCollider2D>().radius;
             Vector2 collCenter = firstHit.collider.gameObject.transform.position;
             float deg = Mathf.Atan2(pt.y - collCenter.y, pt.x - collCenter.x) * Mathf.Rad2Deg;
             Debug.Log("deg: " + deg);
+
+            if(wellRotations[pName] == "CW")
+            {
+                deg += 135;
+            }else if(wellRotations[pName] == "CCW")
+            {
+                deg += -135;
+            }
+
+            Debug.Log("Rotation: " + wellRotations[pName] + " Deg: " + deg);
 
         } else if (tag == "Paddle")
         {
@@ -108,20 +130,11 @@ public class BallController : MonoBehaviour
         return diff % 0.25f;
     }
 
-    bool atRadius(RaycastHit2D hit)
+    void printRotations(Dictionary<string, string> wellRotations)
     {
-        float ptErr = 0.05f;
-        float rad = hit.collider.GetComponent<CircleCollider2D>().radius;
-        Vector2 center = hit.collider.gameObject.transform.position;
-        Vector2 hitPoint = hit.point;
-
-        float dist = Vector2.Distance(center, hitPoint);
-
-        if(dist >= (rad - ptErr))
+        foreach (KeyValuePair<string, string> well in wellRotations)
         {
-            return true;
+            Debug.Log("Key: " + well.Key + " Value: " + well.Value);
         }
-
-        return false;
     }
 }

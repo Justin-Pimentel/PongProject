@@ -7,6 +7,7 @@ public class TrajectoryModifier : MonoBehaviour
 {
     public Vector3[] points;
     public LineRenderer lR;
+    public string rotType;
     private int RESOLUTION = 50;
     private int layerOrder = 0;
 
@@ -18,6 +19,11 @@ public class TrajectoryModifier : MonoBehaviour
             lR = GetComponent<LineRenderer>();
         }
         lR.sortingLayerID = layerOrder;
+
+        if(string.Compare(rotType, "CW") == 0 || string.Compare(rotType, "CCW") == 0)
+        {
+            Debug.Log("All is well");
+        }
     }
 
     // Update is called once per frame
