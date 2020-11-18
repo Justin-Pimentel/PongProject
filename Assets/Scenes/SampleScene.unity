@@ -968,6 +968,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73aaa8d3b6412324ea337ff0316d59fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  modAngle: 135
   initialSpeed: 5
   maxVectorSpeed: 3
   rayDist: 0.2

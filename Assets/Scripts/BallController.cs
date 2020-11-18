@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class BallController : MonoBehaviour
 {
+    public float modAngle;
     public float initialSpeed;
     public float maxVectorSpeed;
     public float rayDist;
@@ -12,6 +13,7 @@ public class BallController : MonoBehaviour
     private GameObject parentWell;
     private Dictionary<string, string> wellRotations;
     private Vector2 newVelocity;
+    private Vector2[] points = new Vector2[3]; 
     private bool inWell = false;
 
     // Start is called before the first frame update
@@ -70,20 +72,40 @@ public class BallController : MonoBehaviour
 
         if (tag == "GWell" && !inWell)
         {
+            //Gather information about the collider and its position
             inWell = true;
-            Debug.Log("Hit dat well");
+            points[0] = pt;
             float radius = firstHit.collider.GetComponent<CircleCollider2D>().radius;
             Vector2 collCenter = firstHit.collider.gameObject.transform.position;
-            float deg = Mathf.Atan2(pt.y - collCenter.y, pt.x - collCenter.x) * Mathf.Rad2Deg;
+            float rad = Mathf.Atan2(pt.y - collCenter.y, pt.x - collCenter.x);
+            float deg = rad * Mathf.Rad2Deg;
             Debug.Log("deg: " + deg);
 
+            //Find the second point by extending the radius and find the halfway point 
+            //between the first and third point
+            float tempDeg = deg;
+            float tempRad = radius += radius/2;
+
+            //Modify the angle according to the rotation of the gravity well
             if(wellRotations[pName] == "CW")
             {
-                deg += 135;
+                tempDeg += modAngle / 2;
+                tempDeg *= Mathf.Deg2Rad;
+                deg += modAngle;
             }else if(wellRotations[pName] == "CCW")
             {
-                deg += -135;
+                tempDeg += -modAngle / 2;
+                tempDeg *= Mathf.Deg2Rad;
+                deg += -modAngle;
             }
+
+            //Assign second point
+            points[1] = findPointOnCircle(tempDeg, tempRad, collCenter);
+
+            rad = deg * Mathf.Deg2Rad;
+
+            //Assign third point
+            points[2] = findPointOnCircle(rad, radius, collCenter);
 
             Debug.Log("Rotation: " + wellRotations[pName] + " Deg: " + deg);
 
@@ -128,6 +150,16 @@ public class BallController : MonoBehaviour
         }
 
         return diff % 0.25f;
+    }
+
+    Vector2 findPointOnCircle(float angle, float radius, Vector2 origin)
+    { 
+        float x = origin.x + radius * Mathf.Cos(angle);
+        float y = origin.y + radius * Mathf.Sin(angle);
+
+        Vector2 p = new Vector2(x, y);
+
+        return p;
     }
 
     void printRotations(Dictionary<string, string> wellRotations)
