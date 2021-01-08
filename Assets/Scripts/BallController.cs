@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,13 +8,17 @@ public class BallController : MonoBehaviour
     public float initialSpeed;
     public float maxVectorSpeed;
     public float rayDist;
+    public float duration;
+    public GameObject test;
     private GameObject lP;
     private GameObject rP;
     private GameObject parentWell;
     private Dictionary<string, string> wellRotations;
     private Vector2 newVelocity;
-    private Vector2[] points = new Vector2[3]; 
     private bool inWell = false;
+    private int RESOLUTION = 25;
+    private Vector3[] curvePoints;
+    private Vector2[] points = new Vector2[3]; 
 
     // Start is called before the first frame update
     void Start()
@@ -23,6 +27,7 @@ public class BallController : MonoBehaviour
         rP = GameObject.Find("RightPaddle");
         parentWell = GameObject.Find("Gravity Wells");
         wellRotations = new Dictionary<string, string>();
+        curvePoints = new Vector3[RESOLUTION];
 
         float rNum = Random.Range(-1f, 1f);
 
@@ -46,14 +51,23 @@ public class BallController : MonoBehaviour
     void Update()
     {
         //Move the ball
-        transform.Translate(newVelocity * initialSpeed * Time.deltaTime);
+        if(!inWell){
+            transform.Translate(newVelocity * initialSpeed * Time.deltaTime);
 
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, newVelocity, rayDist);
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, newVelocity, rayDist);
 
-        //Only process the first hit detected by the raycast
-        if (hit.collider != null)
-        {
-            processCollision(hit);
+            //Only process the first hit detected by the raycast
+            if (hit.collider != null)
+            {
+                processCollision(hit);
+            }
+        }else{
+            float elapsed = 0f;
+            //Interpolation in gravity well
+            Vector3 fromPt = curvePoints[i];
+            Vector3 toPT = curvePoints[i+1];
+                
+            transform.position = Vector3.Lerp(fromPt, toPt, elapsed/duration);
         }
     }
 
@@ -70,10 +84,11 @@ public class BallController : MonoBehaviour
          * the more extreme the angle of reflection
          */
 
-        if (tag == "GWell" && !inWell)
+        if(tag != "GWell" && tag != "Paddle"){
+            newVelocity = Vector2.ClampMagnitude(Vector2.Reflect(newVelocity, firstHit.normal),                                      maxVectorSpeed);
+        }else if (tag == "GWell" && !inWell)
         {
             //Gather information about the collider and its position
-            inWell = true;
             points[0] = pt;
             float radius = firstHit.collider.GetComponent<CircleCollider2D>().radius;
             Vector2 collCenter = firstHit.collider.gameObject.transform.position;
@@ -106,7 +121,16 @@ public class BallController : MonoBehaviour
 
             //Assign third point
             points[2] = findPointOnCircle(rad, radius, collCenter);
-
+            
+            for(int i = 0; i < 3; i++){
+                //Instantiate(test, points[i], Quaternion.identity);
+            }
+            
+            DrawCurve();
+            for(int i = 0; i < RESOLUTION; i++){
+                Debug.Log("Point " + i + ": " + curvePoints[i]);
+            }
+            
             Debug.Log("Rotation: " + wellRotations[pName] + " Deg: " + deg);
 
         } else if (tag == "Paddle")
@@ -116,10 +140,7 @@ public class BallController : MonoBehaviour
 
             d = findDiff(pName, pt);
 
-            Debug.Log(d);
-
-            //TODO: Find a way to modify the y value of the newVelocity vector to keep it from too extreme an angle
-
+            //Debug.Log(d);
             Vector2 modVec = Vector2.ClampMagnitude(newVelocity + new Vector2(0, newVelocity.y + d), maxVectorSpeed);
             Vector2 refVec = new Vector2(newVelocity.x, 0);
 
@@ -127,10 +148,30 @@ public class BallController : MonoBehaviour
             Debug.Log(angle);
 
             newVelocity = modVec;
-
-            //Use newVelocity to modify reflect angle
-            //newVelocity = Vector2.ClampMagnitude(newVelocity + new Vector2(0, newVelocity.y + d), maxVectorSpeed);
         }
+    }
+    
+    void DrawCurve()
+    {
+        for(int i = 0; i < RESOLUTION; i++)
+        {
+            float timestep = i/(float)RESOLUTION;
+            curvePoints[i] = CalculateBezierPoint(timestep, points[0], points[1], points[2]);
+        }
+        
+        //Set the flag for checking if in well after the bezier curve has been made
+        inWell = true;
+    }
+    
+    Vector3 CalculateBezierPoint(float t, Vector3 p1, Vector3 p2, Vector3 p3)
+    {
+        float u = 1-t;
+        float uu = u*u;
+        float tt = t*t;
+        
+        Vector3 point = (uu*p1)+(2*u*t*p2)+(tt*p3);
+        
+        return point;
     }
 
     float findDiff(string n, Vector2 p)
@@ -149,9 +190,11 @@ public class BallController : MonoBehaviour
             diff = p.y - rP.transform.position.y;
         }
 
+        //Maintains a float that is within 0.25
         return diff % 0.25f;
     }
 
+    //Helper function to find a point on a circle given angle, radius, and origin of the circle
     Vector2 findPointOnCircle(float angle, float radius, Vector2 origin)
     { 
         float x = origin.x + radius * Mathf.Cos(angle);
@@ -162,6 +205,7 @@ public class BallController : MonoBehaviour
         return p;
     }
 
+    //Helper function to check which gravity well has what rotation
     void printRotations(Dictionary<string, string> wellRotations)
     {
         foreach (KeyValuePair<string, string> well in wellRotations)

@@ -5,10 +5,10 @@ using UnityEngine;
 
 public class TrajectoryModifier : MonoBehaviour
 {
-    public Vector3[] points;
+    //public Vector3[] points;
     public LineRenderer lR;
     public string rotType;
-    private int RESOLUTION = 50;
+    //private int RESOLUTION = 50;
     private int layerOrder = 0;
 
     // Start is called before the first frame update
@@ -20,9 +20,9 @@ public class TrajectoryModifier : MonoBehaviour
         }
         lR.sortingLayerID = layerOrder;
 
-        if(string.Compare(rotType, "CW") == 0 || string.Compare(rotType, "CCW") == 0)
+        if(string.Compare(rotType, "CW") != 0 || string.Compare(rotType, "CCW") != 0)
         {
-            Debug.Log("All is well");
+            Debug.Log("Set the rotation!");
         }
     }
 
@@ -33,7 +33,7 @@ public class TrajectoryModifier : MonoBehaviour
     }
     
     //Helper function to visualize the curve
-    void DrawCurve()
+    /*void DrawCurve()
     {
         for(int i = 0; i < RESOLUTION; i++)
         {
@@ -51,5 +51,5 @@ public class TrajectoryModifier : MonoBehaviour
         Vector3 point = (uu*p1)+(2*u*t*p2)+(tt*p3);
         
         return point;
-    }
+    }*/
 }
